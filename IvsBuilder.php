@@ -23,7 +23,7 @@ class IvsBuilder
     {
         $this->varList = $varList;
         $this->totalVars = count($varList);
-        $this->groupsNum = $numGroups;
+        $this->groupsNum = $numGroups ? $numGroups : (int) $this->getNumGroups();
         $this->xMax = max($this->varList);
         $this->xMin = min($this->varList);
     }
@@ -35,7 +35,7 @@ class IvsBuilder
     {
         $groups = $this->getGroups();
         $resultSet['totalVariants'] = $this->totalVars;
-        $resultSet['ranges'] = $this->fillGroupsByVarsCount($groups);
+        $resultSet['series'] = $this->fillGroupsByVarsCount($groups);
 
         return $resultSet;
     }
@@ -45,7 +45,8 @@ class IvsBuilder
      */
     private function getNumGroups()
     {
-        return 1 + 3.322 * log10($this->totalVars);
+        $log10 =  log10($this->totalVars);
+        return round(1 + 3.322 * $log10);
     }
 
     /**
@@ -53,9 +54,7 @@ class IvsBuilder
      */
     private function getIntervalValue()
     {
-        $k = $this->groupsNum !== null ? $this->groupsNum : $this->getNumGroups();
-        $i = ($this->xMax - $this->xMin) / round($k);
-
+        $i = ($this->xMax - $this->xMin) / $this->groupsNum;
         return round($i);
     }
 
@@ -68,14 +67,14 @@ class IvsBuilder
         $i = (int)$this->getIntervalValue();
 
         for ($min = $this->xMin; $min <= $this->xMax; $min += $i) {
-            if ($min+$i <= $this->xMax) {
+//            if ($min+$i <= $this->xMax) {
                 $groupUnit = [
                     'minVal' => $min,
                     'maxVal' => $min+$i,
                     'countVars' => 0
                 ];
                 array_push($groups, $groupUnit);
-            }
+//            }
         }
 
         return $groups;
